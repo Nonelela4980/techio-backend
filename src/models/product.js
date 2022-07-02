@@ -10,4 +10,4 @@ const ProductSchema = new Schema({
     imageUrl:{type:String, required:true},
 })
 
-module.exports = mongoose.model('product',UserSchema)
+module.exports = mongoose.model('product',ProductSchema)

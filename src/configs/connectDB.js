@@ -6,4 +6,4 @@ const connect = () => mongoose.connect(MONGO_URI,()=>{
     console.log('mongo connection successful...')
 })
 
-module.exports = {connect}
+module.exports = connect

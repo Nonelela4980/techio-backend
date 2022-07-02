@@ -1,27 +1,34 @@
 const bcrypt = require('bcrypt')
-const mongoose = require('mongoose')
 const { v4: uuidv4 } = require('uuid');
-const {User} = require('../models/user')
-
+const User = require('../models/user')
 
 const checkExistingUser = async (email) =>{
-    const user=  await User.findOne({'email':`${email}`})
-
+    const user=  await User.findOne({'email':`${email}`},function(err,cur_user){
+        if(err)
+            return HandleError(err)    
+    }).clone().catch(function(error){
+        console.log(error);
+    });
     if(user)
         return true
     else
         return false
+
+        
 }
 
 const register = async (req,res)=>{
-    const {firstname,lastname,email,password} = req.body
 
-    if(checkExistingUser)
+
+    const {firstname,lastname,email,password} = req.body
+    
+    console.log('exiost',await checkExistingUser(email))
+    if(await checkExistingUser(email))
         return res.status(401).json({'message':'email address already exists'})
 
     try{
-        const userId = uuiv4()
-        const hashPassword = bcrypt.hash(password,10)
+        const userId = uuidv4()
+        const hashPassword =await bcrypt.hash(password,10)
 
         await User.create(
             {
@@ -33,7 +40,6 @@ const register = async (req,res)=>{
             }
         )
 
-
         res.status(200).json(
             {
                 'id':userId,
@@ -41,14 +47,14 @@ const register = async (req,res)=>{
                 'lastname':lastname,
                 'email': email,
             }
-        )
-        
+        )      
     }
     catch(error){
         res.status(400).json({
             'message' : 'failed to register',
             'status' : 'failed'
         })
+        console.log(error)
     }
 }
 
@@ -57,12 +63,17 @@ const register = async (req,res)=>{
 const signIn = async (req,res) => {
     const {email,password} = req.body
 
-    if(!checkExistingUser)
+    if(!checkExistingUser(email)) 
         return res.status(403).json({'message':'account does not exist'})
 
-    const user=  await User.findOne({'email':`${email}`})
+    const user=  await User.findOne({'email':`${email}`},function(err,cur_user){
+        if(err)
+            return HandleError(err)    
+    }).clone().catch(function(error){
+        console.log(error);
+    });
 
-    const match = bcrypt.compare(password,user.password)
+    const match = await bcrypt.compare(password,user.password)
 
     if(match){
         return res.status(200).json(
